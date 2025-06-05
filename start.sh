@@ -11,8 +11,8 @@ python -m http.server $PORT &
 uvicorn main:app --host 127.0.0.1 --port 8000 &
 
 echo "Servers started:"
-echo "FastAPI server running on port $PORT"
-echo "ConversationalRAG server running on http://localhost:8000"
+echo "http.server server running on port $PORT"
+echo "main:app server running on http://localhost:8000"
 
 # Wait for all background processes
 wait
