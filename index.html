@@ -190,6 +190,22 @@
       background: #e5e5ea;
       color: #000;
     }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      background: #fff;
+      object-fit: cover;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
   </style>
 </head>
 <body>
@@ -267,10 +283,32 @@
 
       // Append a message bubble
       function appendMessage(text, sender) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message", sender);
-        msgDiv.textContent = text;
-        chatContainer.appendChild(msgDiv);
+        if (sender === "bot") {
+          // Create a row for avatar + message
+          const row = document.createElement("div");
+          row.className = "message-row";
+
+          // Avatar image
+          const avatar = document.createElement("img");
+          avatar.src = "Roni.png"; // Adjust path if needed
+          avatar.alt = "Bot";
+          avatar.className = "avatar";
+
+          // Message bubble
+          const msgDiv = document.createElement("div");
+          msgDiv.classList.add("message", sender);
+          msgDiv.textContent = text;
+
+          row.appendChild(avatar);
+          row.appendChild(msgDiv);
+          chatContainer.appendChild(row);
+        } else {
+          // User message (no avatar)
+          const msgDiv = document.createElement("div");
+          msgDiv.classList.add("message", sender);
+          msgDiv.textContent = text;
+          chatContainer.appendChild(msgDiv);
+        }
         scrollToBottom();
       }
 

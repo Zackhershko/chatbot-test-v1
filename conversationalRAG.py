@@ -2,10 +2,11 @@ from typing import List, Dict
 import json
 from google import genai
 from google.genai import types
+import os
 
 # Configure Gemini API
 client = genai.Client(
-    api_key="AIzaSyDkABqukRgGTkANcPd_AiSu23DjGhJqqfs",
+    api_key=os.getenv("YOUR_API_KEY"),
 )
 
 def load_knowledge_base(jsonl_file: str) -> List[Dict]:
