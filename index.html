@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Chat</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #2c3e50;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.25rem;
+    }
+
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .message {
+      max-width: 70%;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #3498db;
+      color: #fff;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+
+    #input-container {
+      display: flex;
+      padding: 0.5rem 1rem;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+
+    #input-container input[type="text"] {
+      flex: 1;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.25rem;
+      outline: none;
+    }
+
+    #input-container button {
+      margin-left: 0.5rem;
+      padding: 0 1rem;
+      font-size: 1rem;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+    }
+
+    #input-container button:disabled {
+      background: #7f8c8d;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <header>Chat with Bot</header>
+
+  <div id="chat-container">
+    <!-- Messages will be appended here -->
+  </div>
+
+  <div id="input-container">
+    <input
+      type="text"
+      id="user-input"
+      placeholder="Type your message…"
+      autocomplete="off"
+    />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    (function () {
+      const chatContainer = document.getElementById("chat-container");
+      const userInput = document.getElementById("user-input");
+      const sendBtn = document.getElementById("send-btn");
+
+      let sessionId = null;
+
+      // Scroll chat container to bottom
+      function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      // Append a message bubble
+      function appendMessage(text, sender) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message", sender);
+        msgDiv.textContent = text;
+        chatContainer.appendChild(msgDiv);
+        scrollToBottom();
+      }
+
+      // Disable input while awaiting response
+      function setInputDisabled(state) {
+        userInput.disabled = state;
+        sendBtn.disabled = state;
+      }
+
+      // Send user message to backend
+      async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        // Append user bubble & clear input
+        appendMessage(text, "user");
+        userInput.value = "";
+        setInputDisabled(true);
+        
+        // Check if we need to create a new session
+        if (!sessionId) {
+          try {
+            const sessionRes = await fetch("http://localhost:8000/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({})
+            });
+
+            if (!sessionRes.ok) {
+              throw new Error(`HTTP ${sessionRes.status}`);
+            }
+
+            const sessionData = await sessionRes.json();
+            sessionId = sessionData.session_id;
+            console.log("Session created:", sessionData);
+          } catch (err) {
+            appendMessage(`Error: Unable to create session. (${err.message})`, "bot");
+            console.error(err);
+            setInputDisabled(false);
+            return;
+          }
+        }
+
+        try {
+          const payload = { message: text };
+          if (sessionId) payload.session_id = sessionId;
+
+          const res = await fetch("http://localhost:8000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          sessionId = data.session_id;
+          appendMessage(data.reply, "bot");
+        } catch (err) {
+          appendMessage("Error: Unable to reach server.", "bot");
+          console.error(err);
+        } finally {
+          setInputDisabled(false);
+          userInput.focus();
+        }
+      }
+
+      // Send on button click
+      sendBtn.addEventListener("click", sendMessage);
+
+      // Send on Enter key
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Focus input on load
+      window.addEventListener("load", () => {
+        userInput.focus();
+      });
+    })();
+  </script>
+</body>
+</html>
