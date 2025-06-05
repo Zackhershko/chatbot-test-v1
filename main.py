@@ -1,9 +1,10 @@
 import uuid
 import json
 from typing import List, Optional, Dict
+import os
 
 import redis
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from conversationalRAG import generate_reply
@@ -48,6 +49,11 @@ redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=T
 
 # TTL for each session (in seconds); adjust as needed
 SESSION_TTL = 30 * 60  # 30 minutes
+API_KEY = os.environ.get("API_KEY", "AdiKatan432!")  # Default to "123" if running locally
+
+def verify_api_key(x_api_key: str = Header(...)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
 
 class ChatRequest(BaseModel):
     session_id: Optional[str] = None
@@ -112,7 +118,7 @@ def save_history(session_id: str, history: List[Dict[str, str]]):
 #     return get_gemini_response(history, knowledge_base)
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(verify_api_key)])
 def chat(req: ChatRequest):
     # 1. Obtain or create session_id
     session_id = get_or_create_session(req.session_id)
@@ -136,7 +142,7 @@ def chat(req: ChatRequest):
         history=history.copy()
     )
 
-@app.post("/session", response_model=SessionResponse)
+@app.post("/session", response_model=SessionResponse, dependencies=[Depends(verify_api_key)])
 def session(req: SessionRequest):
     # 1. Obtain or create session_id
     session_id = get_or_create_session(req.session_id)

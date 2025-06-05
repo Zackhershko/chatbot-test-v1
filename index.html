@@ -122,6 +122,15 @@
       const sendBtn = document.getElementById("send-btn");
 
       let sessionId = null;
+      let apiKey = null;
+
+      function promptForApiKey() {
+        apiKey = window.prompt("Enter your API key:");
+        if (!apiKey) {
+          alert("API key is required!");
+          promptForApiKey();
+        }
+      }
 
       // Scroll chat container to bottom
       function scrollToBottom() {
@@ -143,6 +152,22 @@
         sendBtn.disabled = state;
       }
 
+      // Helper to fetch with API key and handle 401
+      async function fetchWithApiKey(url, options, retryOn401 = true) {
+        options = options || {};
+        options.headers = options.headers || {};
+        options.headers["x-api-key"] = apiKey;
+        let res = await fetch(url, options);
+        if (res.status === 401 && retryOn401) {
+          appendMessage("Invalid API key. Please try again.", "bot");
+          promptForApiKey();
+          // Retry once with new key
+          options.headers["x-api-key"] = apiKey;
+          res = await fetch(url, options);
+        }
+        return res;
+      }
+
       // Send user message to backend
       async function sendMessage() {
         const text = userInput.value.trim();
@@ -156,7 +181,7 @@
         // Check if we need to create a new session
         if (!sessionId) {
           try {
-            const sessionRes = await fetch("http://localhost:8000/session", {
+            const sessionRes = await fetchWithApiKey("http://localhost:8000/session", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({})
@@ -176,12 +201,13 @@
             return;
           }
         }
+        
 
         try {
           const payload = { message: text };
           if (sessionId) payload.session_id = sessionId;
 
-          const res = await fetch("http://localhost:8000/chat", {
+          const res = await fetchWithApiKey("http://localhost:8000/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -214,8 +240,9 @@
         }
       });
 
-      // Focus input on load
+      // Focus input and prompt for API key on load
       window.addEventListener("load", () => {
+        promptForApiKey();
         userInput.focus();
       });
     })();
