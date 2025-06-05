@@ -6,6 +6,7 @@ import redis
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from conversationalRAG import generate_reply
 
 app = FastAPI()
 
@@ -99,14 +100,16 @@ def save_history(session_id: str, history: List[Dict[str, str]]):
     redis_client.set(session_id, json.dumps(trimmed), ex=SESSION_TTL)
 
 
-def generate_reply(history: List[Dict[str, str]]) -> str:
-    """
-    Placeholder for your existing bot. Replace with actual bot invocation.
-    """
-    if history and history[-1]["role"] == "user":
-        user_text = history[-1]["text"]
-        return f"(echo) You said: {user_text}"
-    return "(echo) Hello."
+# def generate_reply(history: List[Dict[str, str]]) -> str:
+#     """
+#     Generate reply based on conversation history using Gemini.
+#     """
+#     if not history:
+#         return "Hello! How can I help you today?"
+    
+#     # Load knowledge base
+#     knowledge_base = load_knowledge_base('knowledge.jsonl')
+#     return get_gemini_response(history, knowledge_base)
 
 
 @app.post("/chat", response_model=ChatResponse)

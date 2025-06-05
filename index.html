@@ -2,23 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Simple Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fff;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      border-left: 1px solid #e0e0e0;
+      border-right: 1px solid #e0e0e0;
     }
 
     header {
-      background: #2c3e50;
+      background: #075E54;
       color: #fff;
       padding: 1rem;
-      text-align: center;
-      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      font-weight: 500;
     }
 
     #chat-container {
@@ -27,6 +42,7 @@
       flex-direction: column;
       padding: 1rem;
       overflow-y: auto;
+      background: #E5DDD5;
     }
 
     .message {
