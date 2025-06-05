@@ -19,21 +19,16 @@
     }
 
     header {
-      background: #075E54;
+      background: #000;
       color: #fff;
-      padding: 1rem;
+      padding: 3rem 1rem 1rem;
       display: flex;
       align-items: center;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
       position: sticky;
       top: 0;
       z-index: 100;
-    }
-
-    header h1 {
-      font-size: 1.2rem;
-      margin: 0;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     #chat-container {
@@ -42,64 +37,163 @@
       flex-direction: column;
       padding: 1rem;
       overflow-y: auto;
-      background: #E5DDD5;
+      background: #f2f2f7;
     }
 
     .message {
       max-width: 70%;
       margin-bottom: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
+      padding: 0.8rem 1rem;
+      border-radius: 1.2rem;
       word-wrap: break-word;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
     }
 
     .message.user {
       align-self: flex-end;
-      background: #3498db;
+      background: #007AFF;
       color: #fff;
+      border-bottom-right-radius: 0.3rem;
     }
 
     .message.bot {
       align-self: flex-start;
-      background: #ecf0f1;
-      color: #2c3e50;
+      background: #e5e5ea;
+      color: #000;
+      border-bottom-left-radius: 0.3rem;
     }
 
     #input-container {
       display: flex;
-      padding: 0.5rem 1rem;
-      background: #fff;
-      border-top: 1px solid #ddd;
+      padding: 0.8rem;
+      background: #f2f2f7;
+      border-top: 1px solid #e5e5ea;
     }
 
     #input-container input[type="text"] {
       flex: 1;
-      padding: 0.6rem;
+      padding: 0.8rem 1rem;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 0.25rem;
+      border: none;
+      border-radius: 1.5rem;
       outline: none;
+      background: #fff;
+      margin-right: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     #input-container button {
-      margin-left: 0.5rem;
-      padding: 0 1rem;
+      width: 2.5rem;
+      height: 2.5rem;
       font-size: 1rem;
-      background: #2c3e50;
+      background: #007AFF;
       color: #fff;
       border: none;
-      border-radius: 0.25rem;
+      border-radius: 50%;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    #input-container button::before {
+      content: "↑";
+      font-size: 1.2rem;
     }
 
     #input-container button:disabled {
-      background: #7f8c8d;
+      background: #b4b4b6;
       cursor: default;
+    }
+
+    /* iPhone notch area */
+    @supports (padding: max(0px)) {
+      header {
+        padding-top: max(3rem, env(safe-area-inset-top));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+      }
+      
+      #input-container {
+        padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
+        padding-left: max(0.8rem, env(safe-area-inset-left));
+        padding-right: max(0.8rem, env(safe-area-inset-right));
+      }
+    }
+
+    /* API Key Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: #fff;
+      width: 90%;
+      max-width: 320px;
+      border-radius: 14px;
+      padding: 1rem;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: 1px solid #e5e5ea;
+      border-radius: 10px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .modal-button {
+      flex: 1;
+      padding: 0.8rem;
+      margin: 0 0.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .modal-button.primary {
+      background: #007AFF;
+      color: #fff;
+    }
+
+    .modal-button.secondary {
+      background: #e5e5ea;
+      color: #000;
     }
   </style>
 </head>
 <body>
-  <header>Chat with Bot</header>
+  <header>Messages</header>
 
   <div id="chat-container">
     <!-- Messages will be appended here -->
@@ -109,10 +203,10 @@
     <input
       type="text"
       id="user-input"
-      placeholder="Type your message…"
+      placeholder="iMessage"
       autocomplete="off"
     />
-    <button id="send-btn">Send</button>
+    <button id="send-btn"></button>
   </div>
 
   <script>
@@ -125,11 +219,45 @@
       let apiKey = null;
 
       function promptForApiKey() {
-        apiKey = window.prompt("Enter your API key:");
-        if (!apiKey) {
-          alert("API key is required!");
-          promptForApiKey();
-        }
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'modal-overlay';
+          
+          const modal = document.createElement('div');
+          modal.className = 'modal';
+          
+          modal.innerHTML = `
+            <div class="modal-title">Enter API Key</div>
+            <input type="text" id="api-key-input" placeholder="Your API key">
+            <div class="modal-buttons">
+              <button class="modal-button primary" id="submit-key">Continue</button>
+            </div>
+          `;
+          
+          overlay.appendChild(modal);
+          document.body.appendChild(overlay);
+          
+          const input = modal.querySelector('#api-key-input');
+          const submitBtn = modal.querySelector('#submit-key');
+          
+          input.focus();
+          
+          submitBtn.addEventListener('click', () => {
+            const value = input.value.trim();
+            if (value) {
+              document.body.removeChild(overlay);
+              resolve(value);
+            } else {
+              input.style.border = '1px solid red';
+            }
+          });
+          
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              submitBtn.click();
+            }
+          });
+        });
       }
 
       // Scroll chat container to bottom
@@ -160,7 +288,7 @@
         let res = await fetch(url, options);
         if (res.status === 401 && retryOn401) {
           appendMessage("Invalid API key. Please try again.", "bot");
-          promptForApiKey();
+          apiKey = await promptForApiKey();
           // Retry once with new key
           options.headers["x-api-key"] = apiKey;
           res = await fetch(url, options);
@@ -241,9 +369,11 @@
       });
 
       // Focus input and prompt for API key on load
-      window.addEventListener("load", () => {
-        promptForApiKey();
+      window.addEventListener("load", async () => {
+        apiKey = await promptForApiKey();
         userInput.focus();
+        // Add initial greeting message
+        appendMessage("שלום! אני כאן כדי לעזור לך. איך אני יכול לסייע לך היום?", "bot");
       });
     })();
   </script>
