@@ -7,8 +7,12 @@ uvicorn main:app --host 0.0.0.0 --port $PORT --workers 4 &
 # Disabled for production since static files should be served by a CDN/static host
 # python -m http.server 5500 &
 
-echo "Server started:"
-echo "FastAPI server running on port $PORT"
+# Start conversationalRAG server on localhost for internal network access
+uvicorn conversationalRAG:app --host 127.0.0.1 --port 8000 &
 
-# Wait for the FastAPI server process
+echo "Servers started:"
+echo "FastAPI server running on port $PORT"
+echo "ConversationalRAG server running on http://localhost:8000"
+
+# Wait for all background processes
 wait
