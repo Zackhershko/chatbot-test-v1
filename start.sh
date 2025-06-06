@@ -8,7 +8,7 @@ python -m http.server $PORT &
 # python -m http.server 5500 &
 
 # Start conversationalRAG server on localhost for internal network access
-uvicorn main:app --host 0.0.0.0 --port 10000 &
+uvicorn main:app --host 0.0.0.0 --port 8000 &
 
 echo "Servers started:"
 echo "http.server server running on port $PORT"
