@@ -45,7 +45,15 @@ app.add_middleware(
 )
 
 # Initialize Redis client (default localhost:6379)
-redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+# redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
+redis_client = redis.Redis(
+    host='redis-14762.c266.us-east-1-3.ec2.redns.redis-cloud.com',
+    port=14762,
+    decode_responses=True,
+    username="default",
+    password=os.environ.get("REDIS_PASSWORD", "sjoFbPmAt4u39ogTd66RgXDziSxoe8Rc"),
+)
 
 # TTL for each session (in seconds); adjust as needed
 SESSION_TTL = 30 * 60  # 30 minutes
