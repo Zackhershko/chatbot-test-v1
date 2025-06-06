@@ -268,6 +268,10 @@
 
   <script>
     (function () {
+      const API_BASE =
+        window.location.hostname === "localhost"
+          ? "http://localhost:8000"
+          : "https://chatbot-test-v1-1.onrender.com";
       const chatContainer = document.getElementById("chat-container");
       const userInput = document.getElementById("user-input");
       const sendBtn = document.getElementById("send-btn");
@@ -423,7 +427,7 @@
         // Check if we need to create a new session
         if (!sessionId) {
           try {
-            const sessionRes = await fetchWithApiKey("http://localhost:8000/session", {
+            const sessionRes = await fetchWithApiKey(`${API_BASE}/session`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({})
@@ -450,7 +454,7 @@
           const payload = { message: text };
           if (sessionId) payload.session_id = sessionId;
 
-          const res = await fetchWithApiKey("http://localhost:8000/chat", {
+          const res = await fetchWithApiKey(`${API_BASE}/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
